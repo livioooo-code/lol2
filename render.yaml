@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: courier-route-app
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn main:app
+    plan: free

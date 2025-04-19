@@ -1,0 +1,316 @@
+/* Main application styles */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121212;
+    color: #f8f9fa;
+}
+
+.navbar {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Map styling */
+#map {
+    height: 600px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Form styling */
+.location-entry {
+    background-color: #2b3035;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.location-entry .badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.btn-remove-location {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.8rem;
+}
+
+/* Route summary styling */
+#route-summary {
+    margin-top: 20px;
+}
+
+.list-group-item {
+    transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: #343a40;
+}
+
+/* Location markers */
+.map-marker {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.map-marker.home {
+    background-color: #198754;
+}
+
+.map-marker.office {
+    background-color: #0d6efd;
+}
+
+.map-marker.business {
+    background-color: #fd7e14;
+}
+
+.map-marker.pickup_point {
+    background-color: #6f42c1;
+}
+
+.map-marker.other {
+    background-color: #6c757d;
+}
+
+/* Location popup styling */
+.location-popup {
+    padding: 5px;
+    max-width: 250px;
+}
+
+.location-category {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-right: 5px;
+}
+
+.location-category.home {
+    background-color: rgba(25, 135, 84, 0.2);
+    color: #20c997;
+}
+
+.location-category.office {
+    background-color: rgba(13, 110, 253, 0.2);
+    color: #0d6efd;
+}
+
+.location-category.business {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.location-category.pickup_point {
+    background-color: rgba(111, 66, 193, 0.2);
+    color: #6f42c1;
+}
+
+.location-category.other {
+    background-color: rgba(108, 117, 125, 0.2);
+    color: #adb5bd;
+}
+
+.time-window {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: #adb5bd;
+    margin-left: 5px;
+}
+
+.time-window i {
+    margin-right: 3px;
+}
+
+/* Weather card styling */
+.weather-card {
+    background-color: rgba(13, 110, 253, 0.1);
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.weather-icon {
+    width: 50px;
+    height: 50px;
+}
+
+.weather-card .temp {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.weather-card .condition {
+    font-size: 0.9rem;
+}
+
+.weather-card .details {
+    font-size: 0.8rem;
+    color: #adb5bd;
+}
+
+.weather-card .location {
+    font-size: 0.8rem;
+    font-style: italic;
+    margin-top: 5px;
+    color: #adb5bd;
+}
+
+.weather-alert {
+    background-color: rgba(220, 53, 69, 0.2);
+    border-radius: 4px;
+    padding: 5px;
+    font-size: 0.8rem;
+    color: #dc3545;
+}
+
+/* Analytics cards */
+.analytics-card {
+    background-color: #2b3035;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    height: 100%;
+}
+
+.analytics-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.analytics-label {
+    font-size: 0.9rem;
+    color: #adb5bd;
+}
+
+.chart-container {
+    height: 300px;
+    margin: 20px 0;
+    position: relative;
+}
+
+/* Saved routes styling */
+.saved-route-card {
+    transition: transform 0.2s;
+}
+
+.saved-route-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Mobile-specific styling moved to mobile.css */
+
+/* Current location marker */
+.current-location-marker {
+    color: #dc3545;
+    font-size: 1.5rem;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse {
+    animation: pulse 1.5s infinite;
+}
+
+/* PWA-related styles for offline mode */
+body.offline-mode .online-only {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+#offline-status {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #dc3545;
+    color: white;
+    text-align: center;
+    padding: 5px;
+    font-weight: bold;
+    z-index: 1001;
+}
+
+/* Mobile-specific swipe styles */
+.location-entry.swiped {
+    transform: translateX(-80px);
+}
+
+.swipe-delete-btn {
+    position: absolute;
+    right: -60px;
+    top: 0;
+    bottom: 0;
+    width: 60px;
+    background-color: #dc3545;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 8px 8px 0;
+}
+
+/* Mobile-optimized inputs */
+.mobile-input {
+    height: 48px;
+    font-size: 16px;
+}
+
+/* Route List Modal for mobile */
+#routeListModal .route-list-item {
+    border-bottom: 1px solid #343a40;
+    padding: 15px 0;
+}
+
+#routeListModal .route-list-item:last-child {
+    border-bottom: none;
+}
+
+/* PWA Install Prompt */
+#pwa-install-prompt {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background-color: #343a40;
+    border: 1px solid #495057;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    display: none;
+    z-index: 1050;
+}
+
+#pwa-install-prompt .btn-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}

@@ -1,0 +1,56 @@
+/* Map styling */
+.leaflet-container {
+    border-radius: 0.25rem;
+}
+
+.map-icon {
+    background: none;
+    border: none;
+}
+
+.route-popup {
+    max-width: 300px;
+}
+
+.route-popup ul {
+    padding-left: 15px;
+    margin-bottom: 0;
+}
+
+/* Location entry styling */
+.location-entry {
+    position: relative;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Additional styling for the cards */
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    font-weight: 500;
+}
+
+/* Animation for route lines */
+@keyframes dash {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Override for the primary button colors */
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+/* Make the map responsive */
+@media (max-width: 768px) {
+    #map {
+        height: 400px;
+    }
+}
