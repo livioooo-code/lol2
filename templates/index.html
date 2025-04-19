@@ -55,6 +55,8 @@
                         </div>
                     </div>
                     <input type="hidden" id="location_count" name="location_count" value="1">
+                    <input type="hidden" id="current_lat" name="current_lat">
+                    <input type="hidden" id="current_lon" name="current_lon">
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-calculator me-2"></i>Optimize Route
@@ -114,46 +116,24 @@
             </button>
         </div>
         
-        <!-- Export Route Options -->
-        <div id="export-options" class="card mb-3 d-none">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="fas fa-file-export me-2"></i>Export Route</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="/export_route?format=json" class="btn btn-outline-primary">
-                        <i class="fas fa-file-code me-1"></i>JSON
-                    </a>
-                    <a href="/export_route?format=csv" class="btn btn-outline-success">
-                        <i class="fas fa-file-csv me-1"></i>CSV
-                    </a>
-                    <a href="/export_route?format=gpx" class="btn btn-outline-danger">
-                        <i class="fas fa-file-alt me-1"></i>GPX
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Save Route Form (Disabled until database is fixed) -->
+        <!-- Save Route Form (Will be shown after route optimization) -->
         <div id="save-route-form" class="card mb-4 d-none">
             <div class="card-header bg-secondary text-white">
                 <h5 class="mb-0"><i class="fas fa-save me-2"></i>Save This Route</h5>
             </div>
             <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Zapisywanie trasy jest obecnie wyłączone z powodu problemów z bazą danych.
-                </div>
-                <div class="mb-3">
-                    <label for="route_name" class="form-label">Route Name:</label>
-                    <input type="text" class="form-control" id="route_name" name="route_name" 
-                            placeholder="Enter a name for this route" disabled>
-                </div>
-                <div class="d-grid">
-                    <button type="button" class="btn btn-secondary" disabled>
-                        <i class="fas fa-save me-2"></i>Save Route
-                    </button>
-                </div>
+                <form action="{{ url_for('save_route') }}" method="post">
+                    <div class="mb-3">
+                        <label for="route_name" class="form-label">Route Name:</label>
+                        <input type="text" class="form-control" id="route_name" name="route_name" 
+                                placeholder="Enter a name for this route" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Route
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

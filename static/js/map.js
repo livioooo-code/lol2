@@ -4,6 +4,28 @@ let routePolylines = [];
 let trafficUpdateTimer;
 let lastTrafficUpdateTime = 0;
 
+// Get current location before form submission
+document.getElementById('route-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                document.getElementById('current_lat').value = position.coords.latitude;
+                document.getElementById('current_lon').value = position.coords.longitude;
+                e.target.submit();
+            },
+            function(error) {
+                console.error('Geolocation error:', error);
+                // Submit form without location if geolocation fails
+                e.target.submit();
+            }
+        );
+    } else {
+        // Submit form without location if geolocation not supported
+        e.target.submit();
+    }
+});
+
 function initMap() {
     // Initialize map
     map = L.map('map').setView([52.2297, 21.0122], 13); // Default view of Warsaw
@@ -44,7 +66,21 @@ function initMap() {
                     },
                     function(error) {
                         console.error("Geolocation error:", error);
-                        alert("Could not get your location. Please check your location permissions.");
+                        let errorMsg = "Could not get your location. ";
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMsg += "Please enable location permissions in your browser settings.";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMsg += "Location information is unavailable.";
+                                break;
+                            case error.TIMEOUT:
+                                errorMsg += "Location request timed out.";
+                                break;
+                            default:
+                                errorMsg += "An unknown error occurred.";
+                        }
+                        alert(errorMsg);
                     },
                     {
                         enableHighAccuracy: true,
@@ -66,8 +102,8 @@ function initMap() {
 }
 
 function setupTrafficUpdates() {
-    // Check for traffic updates every 30 seconds
-    trafficUpdateTimer = setInterval(checkTrafficUpdates, 30000);
+    // Check for traffic updates every 2 minutes
+    trafficUpdateTimer = setInterval(checkTrafficUpdates, 120000);
     
     // Also attach event listener for page visibility
     document.addEventListener('visibilitychange', function() {
@@ -87,9 +123,13 @@ function setupTrafficUpdates() {
 function checkTrafficUpdates() {
     // Don't check too frequently
     const now = Date.now();
-    if ((now - lastTrafficUpdateTime) / 1000 < 30) { // Minimum 30 seconds between checks
+    if ((now - lastTrafficUpdateTime) / 1000 < 120) { // Minimum 2 minutes between checks
         return;
     }
+    
+    // Add error handling for failed requests
+    let retryCount = 0;
+    const maxRetries = 3;
     
     lastTrafficUpdateTime = now;
     
@@ -158,6 +198,23 @@ function displayRoute(routeData) {
     if (!routeData || !routeData.coordinates || routeData.coordinates.length === 0) {
         console.error('No valid route data provided');
         return;
+    }
+
+    // Add current location marker if available
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const currentLocation = [position.coords.latitude, position.coords.longitude];
+            
+            // Add special marker for current location
+            L.marker(currentLocation, {
+                icon: L.divIcon({
+                    className: 'current-location-marker',
+                    html: '<div class="start-point-marker"><i class="fas fa-location-arrow"></i><div class="start-label">Start</div></div>',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 40]
+                })
+            }).addTo(map);
+        });
     }
     
     // Extract coordinates
@@ -262,47 +319,11 @@ function displayRoute(routeData) {
     });
     
     // Create polylines for the route segments with traffic colors if available
-    // Sprawdzamy, czy mamy segmenty na głównym poziomie obiektu trasy (nowa struktura)
-    let segments = routeData.segments;
-    
-    // Jeśli nie, sprawdzamy czy są w route_details (stara struktura)
-    if (!segments && routeData.route_details && routeData.route_details.segments) {
-        segments = routeData.route_details.segments;
-    }
-    
-    // Dodajmy więcej informacji o segmentach
-    console.log("Wszystkie dane trasy:", routeData);
-    
-    // Jeśli znaleziono segmenty, rysujemy je z kolorami zależnymi od ruchu
-    if (segments && segments.length > 0) {
-        console.log("Rysowanie segmentów z kolorami ruchu:", segments);
-        
+    if (routeData.route_details && routeData.route_details.segments) {
         // Draw each segment separately with its traffic color
-        for (const segment of segments) {
+        for (const segment of routeData.route_details.segments) {
             // Get route data for this segment
-            let segmentPoints = [];
-            
-            if (segment.geometry && Array.isArray(segment.geometry)) {
-                console.log(`Segment [${segment.start_idx}-${segment.end_idx}] geometria:`, segment.geometry);
-                
-                // Sprawdzamy, czy mamy pełną geometrię (wszystkie punkty pośrednie)
-                if (segment.geometry.length > 2) {
-                    console.log(`Segment ma ${segment.geometry.length} punktów geometrycznych - rysujemy precyzyjną trasę`, segment.geometry);
-                    // Konwertujemy wszystkie punkty z [lon, lat] na [lat, lon]
-                    segmentPoints = segment.geometry.map(coord => {
-                        console.log("Przetwarzanie punktu geometrii:", coord);
-                        return [coord[1], coord[0]];
-                    });
-                    console.log("Punkty po konwersji:", segmentPoints);
-                } else {
-                    console.log("Segment ma tylko początki i koniec - linia prosta");
-                    // Tylko punkty początkowy i końcowy - linia prosta
-                    segmentPoints = segment.geometry.map(coord => [coord[1], coord[0]]);
-                }
-            } else {
-                console.error("Brak danych geometrycznych dla segmentu");
-                return;
-            }
+            const segmentPoints = segment.geometry.map(coord => [coord[1], coord[0]]);
             
             // Determine color based on traffic level
             let segmentColor = '#0d6efd'; // Default blue
@@ -394,45 +415,66 @@ function displayRoute(routeData) {
     // Show route summary
     updateRouteSummary(routeData);
     
-    // Show the navigation button and export options
+    // Show the navigation button
     document.getElementById('start-navigation-btn').classList.remove('d-none');
-    document.getElementById('export-options').classList.remove('d-none');
     
     // Store route data in session storage for the navigation button
     sessionStorage.setItem('routeData', JSON.stringify(routeData));
 }
 
 function startNavigation() {
-    // Get user's current location
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            const currentLocation = [lat, lon];
-            
-            // Get the first stop coordinates (assuming it's routeData.coordinates[0])
-            // But first convert the coordinates to [lat, lon] format from [lon, lat]
-            const routeData = JSON.parse(sessionStorage.getItem('routeData') || '{}');
-            if (!routeData || !routeData.coordinates || routeData.coordinates.length === 0) {
-                console.error('No valid route data found');
-                return;
-            }
-            
+    // Get the route data first
+    const routeData = JSON.parse(sessionStorage.getItem('routeData') || '{}');
+    if (!routeData || !routeData.coordinates || routeData.coordinates.length === 0) {
+        alert('Nie znaleziono ważnych danych trasy. Zoptymalizuj trasę ponownie.');
+        return;
+    }
+    
+    // Try to get user's current location, but continue with navigation even if it fails
+    try {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                // Success callback
+                position => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const currentLocation = [lat, lon];
+                    
+                    // Get the first stop coordinates
+                    const firstStop = [routeData.coordinates[0][1], routeData.coordinates[0][0]];
+                    
+                    // Open Google Maps with directions from current location
+                    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${currentLocation.join(',')}&destination=${firstStop.join(',')}&travelmode=driving`;
+                    window.open(googleMapsUrl, '_blank');
+                },
+                // Error callback
+                error => {
+                    console.error('Geolocation error:', error);
+                    
+                    // If we can't get current location, just navigate to the first point
+                    const firstStop = [routeData.coordinates[0][1], routeData.coordinates[0][0]];
+                    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${firstStop.join(',')}`;
+                    window.open(googleMapsUrl, '_blank');
+                    
+                    alert('Nie można uzyskać Twojej aktualnej lokalizacji. Nawigacja rozpocznie się od pierwszego punktu trasy.');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,  // Increased timeout
+                    maximumAge: 60000  // Allow cached position up to 1 minute old
+                }
+            );
+        } else {
+            // If geolocation is not supported, just navigate to the first point
             const firstStop = [routeData.coordinates[0][1], routeData.coordinates[0][0]];
-            
-            // Open Google Maps with directions
-            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${currentLocation.join(',')}&destination=${firstStop.join(',')}&travelmode=driving`;
+            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${firstStop.join(',')}`;
             window.open(googleMapsUrl, '_blank');
-        }, error => {
-            console.error('Geolocation error:', error);
-            alert('Could not get your current location. Please enable location services and try again.');
-        }, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        });
-    } else {
-        alert('Geolocation is not supported by your browser.');
+            
+            alert('Twoja przeglądarka nie obsługuje geolokalizacji. Nawigacja rozpocznie się od pierwszego punktu trasy.');
+        }
+    } catch (e) {
+        console.error('Navigation error:', e);
+        alert('Wystąpił błąd podczas uruchamiania nawigacji. Spróbuj ponownie.');
     }
 }
 
@@ -448,9 +490,8 @@ function clearMap() {
     // Hide route summary
     document.getElementById('route-summary').classList.add('d-none');
     
-    // Hide navigation button and export options
+    // Hide navigation button
     document.getElementById('start-navigation-btn').classList.add('d-none');
-    document.getElementById('export-options').classList.add('d-none');
 }
 
 function updateRouteSummary(routeData) {
